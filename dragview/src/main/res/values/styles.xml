@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="DragView">
+        <attr name="minShowSize" format="dimension"></attr>
+        <attr name="dragModel" format="enum">
+            <enum name="Bottom2Up" value="8" />
+            <enum name="Up2Bottom" value="4" />
+            <enum name="Right2Left" value="2" />
+            <enum name="Left2Right" value="1" />
+        </attr>
+    </declare-styleable>
+
+</resources>
