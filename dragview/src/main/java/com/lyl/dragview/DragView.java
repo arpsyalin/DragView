@@ -256,24 +256,25 @@ public class DragView extends FrameLayout {
     public boolean onTouchEvent(MotionEvent event) {
         mViewDragHelper.processTouchEvent(event);
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (mShowModel) return true;
             switch (mDragModel) {
                 case ViewDragHelper.EDGE_BOTTOM:
-                    if (event.getY() < (mShowModel ? 0 : mViewMinShowSize)) {
+                    if (event.getY() < mViewMinShowSize) {
                         return false;
                     }
                     return true;
                 case ViewDragHelper.EDGE_TOP:
-                    if (event.getY() > (mShowModel ? mViewMaxShowSize : mViewMinShowSize)) {
+                    if (event.getY() > mViewMinShowSize) {
                         return false;
                     }
                     return true;
                 case ViewDragHelper.EDGE_LEFT:
-                    if (event.getX() > (mShowModel ? mViewMaxShowSize : mViewMinShowSize)) {
+                    if (event.getX() > mViewMinShowSize) {
                         return false;
                     }
                     return true;
                 case ViewDragHelper.EDGE_RIGHT:
-                    if (event.getX() < (mShowModel ? 0 : mViewMinShowSize)) {
+                    if (event.getX() < mViewMinShowSize) {
                         return false;
                     }
                     return true;
