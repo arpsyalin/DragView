@@ -110,7 +110,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/app_name"
                 android:textColor="#333" />
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -118,5 +117,4 @@
                 android:textColor="#333" />
         </LinearLayout>
     </com.lyl.dragview.DragView>
-
 </RelativeLayout>
