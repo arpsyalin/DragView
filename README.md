@@ -16,7 +16,7 @@ gradle
 Step 2. Add the dependency
 
 	dependencies {
-	        implementation 'com.github.arpsyalin:DragView:v1.0'
+	        implementation 'com.github.arpsyalin:DragView:1.0'
 	}
 
 Step 3. use DragView
