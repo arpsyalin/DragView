@@ -21,20 +21,22 @@ import androidx.customview.widget.ViewDragHelper;
  * * @Remark TODO
  **/
 public class DragView extends FrameLayout {
-    //显示最小大小
-    private float mMinShowSize;
-    private float mViewMaxShowSize;
-    //中间的大小 用于判断松手后是回弹最小 还是回弹最大显示
-    private float mCenterShowSize;
-    private int mNowShowSize;
-    int mNowHideDis = -1;
-    //初始的位置记录left top
-    private Point mInitLocationPos = new Point();
+    //子View
     private View mChildView;
+    //显示最小大小
+    private int mViewMinShowSize;
+    //最大显示
+    private int mViewMaxShowSize;
+    //回弹阈值，根据拖拽up的位置计算滑动回弹的位置（大于显示最大，小于则显示最小）
+    private float mCenterShowSize;
     //拖拽助手
     private ViewDragHelper mViewDragHelper;
     //默认是从底部往上滑
     private int mDragModel = ViewDragHelper.EDGE_BOTTOM;
+    //初始显示的模式
+    private boolean mShowModel;
+    //记录拖动过程中的当前的位置
+    private int mNowHideDis;
 
     public DragView(@NonNull Context context) {
         super(context);
@@ -52,7 +54,8 @@ public class DragView extends FrameLayout {
 
     private void initAttrs(Context context, AttributeSet attrs) {
         final TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.DragView);
-        mMinShowSize = ta.getDimension(R.styleable.DragView_minShowSize, 0);
+        mViewMinShowSize = (int) ta.getDimension(R.styleable.DragView_minShowSize, 0);
+        mShowModel = ta.getBoolean(R.styleable.DragView_showModel, true);
         mDragModel = ta.getInt(R.styleable.DragView_dragModel, ViewDragHelper.EDGE_BOTTOM);
         ta.recycle();
         initConfig();
@@ -69,7 +72,7 @@ public class DragView extends FrameLayout {
             @Override
             public int clampViewPositionHorizontal(View child, int left, int dx) {
                 if (mDragModel == ViewDragHelper.EDGE_BOTTOM || mDragModel == ViewDragHelper.EDGE_TOP) {
-                    return mInitLocationPos.x;
+                    return 0;
                 } else {
                     if (mDragModel == ViewDragHelper.EDGE_RIGHT) {
                         if (left > 0) {
@@ -94,7 +97,7 @@ public class DragView extends FrameLayout {
             @Override
             public int clampViewPositionVertical(View child, int top, int dy) {
                 if (mDragModel == ViewDragHelper.EDGE_LEFT || mDragModel == ViewDragHelper.EDGE_RIGHT) {
-                    return mInitLocationPos.y;
+                    return 0;
                 } else {
                     if (mDragModel == ViewDragHelper.EDGE_BOTTOM) {
                         if (top > 0) {
@@ -122,20 +125,24 @@ public class DragView extends FrameLayout {
                 if (releasedChild == mChildView) {
                     switch (mDragModel) {
                         case ViewDragHelper.EDGE_BOTTOM:
-                            mNowHideDis = (mCenterShowSize > mNowHideDis) ? 0 : mInitLocationPos.y;
-                            mViewDragHelper.settleCapturedViewAt(mInitLocationPos.x, mNowHideDis);
+                            mShowModel = mNowHideDis < mCenterShowSize;
+                            mNowHideDis = mShowModel ? 0 : mViewMinShowSize;
+                            mViewDragHelper.settleCapturedViewAt(0, mNowHideDis);
                             break;
                         case ViewDragHelper.EDGE_TOP:
-                            mNowHideDis = (-mNowHideDis < mCenterShowSize) ? 0 : -mInitLocationPos.y;
-                            mViewDragHelper.settleCapturedViewAt(mInitLocationPos.x, mNowHideDis);
+                            mShowModel = mNowHideDis > -mCenterShowSize;
+                            mNowHideDis = mShowModel ? 0 : mViewMinShowSize - mViewMaxShowSize;
+                            mViewDragHelper.settleCapturedViewAt(0, mNowHideDis);
                             break;
                         case ViewDragHelper.EDGE_LEFT:
-                            mNowHideDis = (-mNowHideDis < mCenterShowSize) ? 0 : -mInitLocationPos.x;
-                            mViewDragHelper.settleCapturedViewAt(mNowHideDis, mInitLocationPos.y);
+                            mShowModel = mNowHideDis > -mCenterShowSize;
+                            mNowHideDis = mShowModel ? 0 : mViewMinShowSize - mViewMaxShowSize;
+                            mViewDragHelper.settleCapturedViewAt(mNowHideDis, 0);
                             break;
                         case ViewDragHelper.EDGE_RIGHT:
-                            mNowHideDis = (mNowHideDis > mCenterShowSize) ? mInitLocationPos.x : 0;
-                            mViewDragHelper.settleCapturedViewAt(mNowHideDis, mInitLocationPos.y);
+                            mShowModel = mNowHideDis < mCenterShowSize;
+                            mNowHideDis = mShowModel ? 0 : mViewMinShowSize;
+                            mViewDragHelper.settleCapturedViewAt(mNowHideDis, 0);
                             break;
                     }
                     invalidate();
@@ -193,55 +200,51 @@ public class DragView extends FrameLayout {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         switch (mDragModel) {
-            case ViewDragHelper.EDGE_BOTTOM:
-                mCenterShowSize = (mChildView.getMeasuredHeight() - mMinShowSize) / 2;
-                mNowShowSize = (int) (mChildView.getMeasuredHeight() - mMinShowSize);
-                mViewMaxShowSize = mChildView.getMeasuredHeight();
-                break;
             case ViewDragHelper.EDGE_TOP:
-                mCenterShowSize = (mChildView.getMeasuredHeight() - mMinShowSize) / 2;
-                mNowShowSize = (int) mMinShowSize;
+            case ViewDragHelper.EDGE_BOTTOM:
+                mViewMaxShowSize = mChildView.getMeasuredHeight();
                 mViewMaxShowSize = mChildView.getMeasuredHeight();
                 break;
-
             case ViewDragHelper.EDGE_RIGHT:
-                mCenterShowSize = (mChildView.getMeasuredWidth() - mMinShowSize) / 2;
-                mNowShowSize = (int) (mChildView.getMeasuredWidth() - mMinShowSize);
-                mViewMaxShowSize = mChildView.getMeasuredWidth();
-                break;
             case ViewDragHelper.EDGE_LEFT:
-                mCenterShowSize = (mChildView.getMeasuredWidth() - mMinShowSize) / 2;
-                mNowShowSize = (int) mMinShowSize;
+                mViewMaxShowSize = mChildView.getMeasuredWidth();
                 mViewMaxShowSize = mChildView.getMeasuredWidth();
                 break;
         }
+        mCenterShowSize = (mViewMaxShowSize - mViewMinShowSize) / 2;
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
+        int left = l, top = t, right = r, bottom = b;
         switch (mDragModel) {
             case ViewDragHelper.EDGE_BOTTOM:
-                mChildView.layout(0, mNowHideDis == -1 ? mNowShowSize : mNowHideDis, mChildView.getMeasuredWidth(), mChildView.getMeasuredHeight() + (mNowHideDis == -1 ? mNowShowSize : mNowHideDis));
-                mInitLocationPos.x = mChildView.getLeft();
-                mInitLocationPos.y = mNowShowSize;
+                left = 0;
+                top = mShowModel ? 0 : mViewMinShowSize;
+                right = mChildView.getMeasuredWidth();
+                bottom = mViewMaxShowSize + top;
                 break;
             case ViewDragHelper.EDGE_TOP:
-                mChildView.layout(0, (mNowHideDis == -1 ? mNowShowSize : mNowHideDis) - mChildView.getMeasuredHeight(), mChildView.getMeasuredWidth(), mNowHideDis == -1 ? mNowShowSize : mNowHideDis);
-                mInitLocationPos.x = mChildView.getLeft();
-                mInitLocationPos.y = mNowShowSize;
+                left = 0;
+                top = mShowModel ? 0 : (mViewMinShowSize - mViewMaxShowSize);
+                right = mChildView.getMeasuredWidth();
+                bottom = mViewMaxShowSize + top;
                 break;
             case ViewDragHelper.EDGE_RIGHT:
-                mChildView.layout(mNowHideDis == -1 ? mNowShowSize : mNowHideDis, mChildView.getMeasuredHeight(), mChildView.getMeasuredWidth() + (mNowHideDis == -1 ? mNowShowSize : mNowHideDis), 0);
-                mInitLocationPos.x = mNowShowSize;
-                mInitLocationPos.y = mChildView.getTop();
+                left = mShowModel ? 0 : mViewMinShowSize;
+                top = 0;
+                right = mViewMaxShowSize + left;
+                bottom = mChildView.getMeasuredHeight();
                 break;
             case ViewDragHelper.EDGE_LEFT:
-                mChildView.layout((mNowHideDis == -1 ? mNowShowSize : mNowHideDis) - mChildView.getMeasuredWidth(), 0, mNowHideDis == -1 ? mNowShowSize : mNowHideDis, mChildView.getMeasuredHeight());
-                mInitLocationPos.x = mNowShowSize;
-                mInitLocationPos.y = mChildView.getTop();
+                left = mShowModel ? 0 : (mViewMinShowSize - mViewMaxShowSize);
+                top = 0;
+                right = mViewMaxShowSize + left;
+                bottom = mChildView.getMeasuredHeight();
                 break;
         }
+        mChildView.layout(left, top, right, bottom);
     }
 
     @Override
@@ -255,22 +258,22 @@ public class DragView extends FrameLayout {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             switch (mDragModel) {
                 case ViewDragHelper.EDGE_BOTTOM:
-                    if (event.getY() < (mNowHideDis == -1 ? mNowShowSize : mNowHideDis)) {
+                    if (event.getY() < (mShowModel ? 0 : mViewMinShowSize)) {
                         return false;
                     }
                     return true;
                 case ViewDragHelper.EDGE_TOP:
-                    if (event.getY() > (mNowHideDis > -1 ? mViewMaxShowSize : mNowShowSize)) {
+                    if (event.getY() > (mShowModel ? mViewMaxShowSize : mViewMinShowSize)) {
                         return false;
                     }
                     return true;
                 case ViewDragHelper.EDGE_LEFT:
-                    if (event.getX() > (mNowHideDis > -1 ? mViewMaxShowSize : mNowShowSize)) {
+                    if (event.getX() > (mShowModel ? mViewMaxShowSize : mViewMinShowSize)) {
                         return false;
                     }
                     return true;
                 case ViewDragHelper.EDGE_RIGHT:
-                    if (event.getX() < (mNowHideDis == -1 ? mNowShowSize : mNowHideDis)) {
+                    if (event.getX() < (mShowModel ? 0 : mViewMinShowSize)) {
                         return false;
                     }
                     return true;
