@@ -203,11 +203,9 @@ public class DragView extends FrameLayout {
             case ViewDragHelper.EDGE_TOP:
             case ViewDragHelper.EDGE_BOTTOM:
                 mViewMaxShowSize = mChildView.getMeasuredHeight();
-                mViewMaxShowSize = mChildView.getMeasuredHeight();
                 break;
             case ViewDragHelper.EDGE_RIGHT:
             case ViewDragHelper.EDGE_LEFT:
-                mViewMaxShowSize = mChildView.getMeasuredWidth();
                 mViewMaxShowSize = mChildView.getMeasuredWidth();
                 break;
         }
