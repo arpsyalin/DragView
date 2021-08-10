@@ -11,8 +11,8 @@
     <com.lyl.dragview.DragView
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
         android:layout_gravity="top"
         android:visibility="visible"
         app:dragModel="Up2Bottom"
@@ -21,8 +21,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_gravity="center_horizontal"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
             android:background="@drawable/bg_top"
             android:orientation="vertical">
 
@@ -61,6 +61,7 @@
         android:visibility="visible"
         app:dragModel="Right2Left"
         app:minShowSize="50dp">
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
