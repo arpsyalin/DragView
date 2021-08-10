@@ -3,6 +3,8 @@
 
     <declare-styleable name="DragView">
         <attr name="minShowSize" format="dimension"></attr>
+        <attr name="containsListInChild" format="boolean"></attr>
+        <attr name="canDragHeight" format="dimension"></attr>
         <attr name="dragModel" format="enum">
             <enum name="Bottom2Up" value="8" />
             <enum name="Up2Bottom" value="4" />
